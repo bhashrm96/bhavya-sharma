@@ -1,0 +1,348 @@
+.custom-banner {
+  color: var(--custom-banner-text);
+}
+
+/* Header layout is shared by desktop and mobile; mobile overrides it inside the media query. */
+.custom-banner__topbar {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  height: 65px;
+  padding: 0 40px;
+  background: var(--custom-banner-header-background);
+  color: var(--custom-banner-header-text);
+}
+
+.custom-banner__menu-toggle {
+  display: none;
+}
+
+.custom-banner__menu {
+  display: contents;
+}
+
+.custom-banner__screen-overlay {
+  display: none;
+}
+
+.custom-banner__brand {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.custom-banner__promo,
+.custom-banner__bottom-strip {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.custom-banner__topbar-link {
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.custom-banner__promo {
+  text-align: center;
+}
+
+/* Shared CTA foundation for the topbar and hero buttons. */
+.custom-banner__topbar-link,
+.custom-banner__button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 20px;
+  padding: 0px 20px;
+  font-size: 15px;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.24s ease;
+}
+
+.custom-banner__topbar-link {
+  justify-self: end;
+  color: #000000;
+  min-height: 42px;
+  min-width: 207px;
+  background: #FFF544;
+}
+
+/* Sliding fill layer: topbar fills black, hero CTA fills yellow. */
+.custom-banner__topbar-link::before,
+.custom-banner__button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.custom-banner__topbar-link::before {
+  background: #000000;
+}
+
+.custom-banner__button::before {
+  background: #FFF544;
+}
+
+.custom-banner__topbar-link > *,
+.custom-banner__button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-banner__button:hover {
+  color: #000000;
+}
+
+.custom-banner__topbar-link:hover {
+  color: #ffffff;
+}
+
+.custom-banner__topbar-link:hover::before,
+.custom-banner__button:hover::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Hero uses CSS variables from the section settings for imagery, text, and overlay. */
+.custom-banner__hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 780px;
+  overflow: hidden;
+  background-color: #d8d8d8;
+  background-image: var(--custom-banner-image);
+  background-position: center;
+  background-size: cover;
+}
+
+.custom-banner__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--custom-banner-overlay-color);
+  opacity: var(--custom-banner-overlay-opacity);
+  pointer-events: none;
+}
+
+.custom-banner__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 45px;
+  width: 100%;
+  max-width: 650px;
+  padding: 0 60px 50px;
+}
+
+.custom-banner__heading {
+  margin: 0;
+  color: currentColor;
+  font-size: 70px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.custom-banner__description {
+  max-width: 520px;
+  margin-top: 45px;
+  color: currentColor;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.custom-banner__description--mobile {
+  display: none;
+}
+
+.custom-banner__button {
+  min-height: 50px;
+  min-width: 220px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.custom-banner__cta-icon {
+  flex: 0 0 auto;
+}
+
+.custom-banner__bottom-strip {
+  padding: 12px 40px;
+  background: var(--custom-banner-strip-background);
+  color: var(--custom-banner-strip-text);
+  text-align: center;
+}
+
+@media screen and (max-width: 749px) {
+  /* Mobile header keeps only the hamburger and centered brand visible by default. */
+  .custom-banner__topbar {
+    grid-template-columns: 40px 1fr 40px;
+    gap: 0;
+    height: 65px;
+    padding: 0 20px;
+    text-align: center;
+    z-index: 5;
+  }
+
+  .custom-banner__menu-toggle {
+    display: inline-flex;
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+    justify-content: flex-start;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    cursor: pointer;
+  }
+
+  .custom-banner__menu-icon {
+    display: block;
+  }
+
+  .custom-banner__menu-icon--close,
+  .custom-banner__topbar.is-open .custom-banner__menu-icon--open {
+    display: none;
+  }
+
+  .custom-banner__topbar.is-open .custom-banner__menu-icon--close {
+    display: block;
+  }
+
+  .custom-banner__brand {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  /* Mobile dropdown stays mounted so opacity/transform can animate on both open and close. */
+  .custom-banner__menu {
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 20px 24px;
+    background: var(--custom-banner-header-background);
+    color: var(--custom-banner-header-text);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-12px);
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease,
+      visibility 0s linear 0.28s;
+  }
+
+  .custom-banner__topbar.is-open .custom-banner__menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease,
+      visibility 0s linear 0s;
+  }
+
+  /* Overlay sits below the header/menu and above the page to block outside interaction. */
+  .custom-banner__screen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.28s ease,
+      visibility 0s linear 0.28s;
+  }
+
+  .custom-banner__topbar.is-open + .custom-banner__screen-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 0.28s ease,
+      visibility 0s linear 0s;
+  }
+
+  .custom-banner__topbar-link {
+    justify-self: center;
+  }
+
+  .custom-banner__hero {
+    align-items: stretch;
+    min-height: 421px;
+    background-image: var(--custom-banner-mobile-image, var(--custom-banner-image));
+  }
+
+  /* Mobile hero separates text and CTA vertically with the CTA pinned lower. */
+  .custom-banner__content {
+    align-items: center;
+    justify-content: space-between;
+    max-width: none;
+    min-height: 421px;
+    padding: 36px 20px 28px;
+    text-align: center;
+  }
+
+  .custom-banner__heading {
+    font-size: 36px;
+    line-height: 1.05;
+  }
+
+  .custom-banner__description {
+    max-width: 330px;
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .custom-banner__description--desktop {
+    display: none;
+  }
+
+  .custom-banner__description--mobile {
+    display: block;
+  }
+
+  .custom-banner__button {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .custom-banner__bottom-strip {
+    padding: 10px 20px;
+  }
+}
