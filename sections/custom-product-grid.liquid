@@ -1,0 +1,304 @@
+{{ 'custom-product-grid.css' | asset_url | stylesheet_tag }}
+{{ 'custom-product-grid.js' | asset_url | script_tag }}
+
+<section class="custom-product-grid custom-product-grid--{{ section.id }}">
+  <div class="custom-product-grid__inner">
+    {% if section.settings.heading != blank %}
+      <div class="custom-product-grid__heading">{{ section.settings.heading | escape }}</div>
+    {% endif %}
+
+    <ul class="custom-product-grid__list" role="list">
+      {% assign product_slots = '1,2,3,4,5,6' | split: ',' %}
+      {% liquid
+        assign has_grid_products = false
+
+        if section.settings.product_1 != blank or section.settings.product_2 != blank or section.settings.product_3 != blank or section.settings.product_4 != blank or section.settings.product_5 != blank or section.settings.product_6 != blank
+          assign has_grid_products = true
+        endif
+      %}
+
+      {% for slot in product_slots %}
+        {% liquid
+          assign grid_product = blank
+
+          case slot
+            when '1'
+              assign grid_product = section.settings.product_1
+            when '2'
+              assign grid_product = section.settings.product_2
+            when '3'
+              assign grid_product = section.settings.product_3
+            when '4'
+              assign grid_product = section.settings.product_4
+            when '5'
+              assign grid_product = section.settings.product_5
+            when '6'
+              assign grid_product = section.settings.product_6
+          endcase
+        %}
+
+        {% if has_grid_products == false or grid_product != blank %}
+          <li class="custom-product-grid__item">
+            <div class="custom-product-grid__card">
+              <div class="custom-product-grid__media">
+                {% if grid_product.featured_image != blank %}
+                  {% assign product_image_alt = grid_product.featured_image.alt | default: grid_product.title | escape %}
+                  {{
+                    grid_product.featured_image
+                    | image_url: width: 700
+                    | image_tag:
+                      loading: 'lazy',
+                      sizes: '(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw',
+                      widths: '300, 450, 600, 700',
+                      alt: product_image_alt
+                  }}
+                {% else %}
+                  {{ 'product-1' | placeholder_svg_tag: 'custom-product-grid__placeholder' }}
+                {% endif %}
+
+                {% if grid_product != blank %}
+                  <button
+                    class="custom-product-grid__pointer"
+                    type="button"
+                    aria-label="View {{ grid_product.title | escape }} details"
+                    aria-controls="custom-product-grid-modal-{{ section.id }}-{{ slot }}"
+                    data-custom-product-grid-open
+                  ></button>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if grid_product != blank %}
+              <div
+                id="custom-product-grid-modal-{{ section.id }}-{{ slot }}"
+                class="custom-product-grid__modal"
+                aria-hidden="true"
+                data-custom-product-grid-modal
+              >
+              <div class="custom-product-grid__modal-overlay" data-custom-product-grid-close></div>
+              <div
+                class="custom-product-grid__modal-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="custom-product-grid-modal-title-{{ section.id }}-{{ slot }}"
+              >
+                <button
+                  class="custom-product-grid__modal-close"
+                  type="button"
+                  aria-label="Close product details"
+                  data-custom-product-grid-close
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true" focusable="false">
+                    <path d="M1.06067 9.54596L9.54595 1.06068" stroke="black" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+                    <path d="M1.06067 1.06068L9.54595 9.54596" stroke="black" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+
+                <div class="custom-product-grid__modal-details">
+                  <div class="custom-product-grid__modal-image">
+                    {% if grid_product.featured_image != blank %}
+                      {{
+                        grid_product.featured_image
+                        | image_url: width: 700
+                        | image_tag:
+                          loading: 'lazy',
+                          sizes: '(min-width: 750px) 320px, 100vw',
+                          widths: '300, 450, 600, 700',
+                          alt: product_image_alt
+                      }}
+                    {% else %}
+                      {{ 'product-1' | placeholder_svg_tag: 'custom-product-grid__placeholder' }}
+                    {% endif %}
+                  </div>
+
+                  <div class="custom-product-grid__modal-info">
+                    <div
+                      id="custom-product-grid-modal-title-{{ section.id }}-{{ slot }}"
+                      class="custom-product-grid__modal-title"
+                    >
+                      {{ grid_product.title | escape }}
+                    </div>
+
+                    <div class="custom-product-grid__modal-price" data-custom-product-grid-price>
+                      {% render 'price', product_resource: grid_product %}
+                    </div>
+
+                    {% if grid_product.description != blank %}
+                      <div class="custom-product-grid__modal-description">
+                        {{ grid_product.description }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <form
+                  class="custom-product-grid__form"
+                  action="/cart/add"
+                  method="post"
+                  enctype="multipart/form-data"
+                  data-custom-product-grid-form
+                  data-money-format="{{ shop.money_format | escape }}"
+                >
+                  <input
+                    type="hidden"
+                    name="id"
+                    value="{{ grid_product.selected_or_first_available_variant.id }}"
+                    data-custom-product-grid-variant-id
+                  >
+
+                  {% unless grid_product.has_only_default_variant %}
+                    <div class="custom-product-grid__variant-selectors">
+                      {% for option in grid_product.options_with_values %}
+                        {% assign option_name_downcase = option.name | downcase %}
+                        {% if option_name_downcase contains 'color' or option_name_downcase contains 'colour' %}
+                          <div class="custom-product-grid__option" data-option-position="{{ option.position }}">
+                            <div class="custom-product-grid__option-label">{{ option.name }}</div>
+                            <div class="custom-product-grid__color-options">
+                              {% for value in option.values %}
+                                {% assign swatch_color = value | split: ' ' | last | downcase %}
+                                <label class="custom-product-grid__color-option">
+                                  <input
+                                    type="radio"
+                                    name="option{{ option.position }}-{{ section.id }}-{{ slot }}"
+                                    value="{{ value | escape }}"
+                                    {% if option.selected_value == value or option.selected_value == blank and forloop.first %}
+                                      checked
+                                    {% endif %}
+                                    data-custom-product-grid-option
+                                  >
+                                  <span
+                                    class="custom-product-grid__color-strip"
+                                    style="--custom-product-grid-swatch: {{ swatch_color }};"
+                                  ></span>
+                                  <span class="custom-product-grid__color-button">
+                                    <span>{{ value }}</span>
+                                  </span>
+                                </label>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+
+                      {% for option in grid_product.options_with_values %}
+                        {% assign option_name_downcase = option.name | downcase %}
+                        {% unless option_name_downcase contains 'color' or option_name_downcase contains 'colour' %}
+                          <div class="custom-product-grid__option" data-option-position="{{ option.position }}">
+                            <div class="custom-product-grid__option-label">{{ option.name }}</div>
+                            <select
+                              class="custom-product-grid__select"
+                              name="option{{ option.position }}-{{ section.id }}-{{ slot }}"
+                              data-custom-product-grid-option
+                            >
+                              {% for value in option.values %}
+                                <option
+                                  value="{{ value | escape }}"
+                                  {% if option.selected_value == value %}selected{% endif %}
+                                >
+                                  {{ value }}
+                                </option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        {% endunless %}
+                      {% endfor %}
+                    </div>
+                  {% endunless %}
+
+                  <button
+                    class="custom-product-grid__add-button"
+                    type="submit"
+                    {% unless grid_product.selected_or_first_available_variant.available %}disabled{% endunless %}
+                    data-custom-product-grid-add
+                  >
+                    <span data-custom-product-grid-add-text>
+                      {% if grid_product.selected_or_first_available_variant.available %}
+                        ADD TO CART
+                      {% else %}
+                        Sold out
+                      {% endif %}
+                    </span>
+                    <svg
+                      class="custom-product-grid__add-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="26"
+                      height="12"
+                      viewBox="0 0 26 12"
+                      fill="none"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M0.75 4.77298L7.37629e-08 4.77298L-7.37629e-08 6.27298L0.75 6.27298L0.75 4.77298ZM25.2803 6.05331C25.5732 5.76042 25.5732 5.28554 25.2803 4.99265L20.5074 0.21968C20.2145 -0.073213 19.7396 -0.0732131 19.4467 0.21968C19.1538 0.512574 19.1538 0.987447 19.4467 1.28034L23.6893 5.52298L19.4467 9.76562C19.1538 10.0585 19.1538 10.5334 19.4467 10.8263C19.7396 11.1192 20.2145 11.1192 20.5074 10.8263L25.2803 6.05331ZM0.75 6.27298L24.75 6.27298L24.75 4.77298L0.75 4.77298L0.75 6.27298Z" fill="currentColor"/>
+                    </svg>
+                  </button>
+
+                  <p class="custom-product-grid__form-message" data-custom-product-grid-message aria-live="polite"></p>
+
+                  <script type="application/json" data-custom-product-grid-variants>
+                    {{ grid_product.variants | json }}
+                  </script>
+                </form>
+              </div>
+            </div>
+            {% endif %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Custom product grid",
+  "tag": "section",
+  "class": "custom-grid-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Tisso vison in the wild"
+    },
+    {
+      "type": "product",
+      "id": "product_1",
+      "label": "Product 1"
+    },
+    {
+      "type": "product",
+      "id": "product_2",
+      "label": "Product 2"
+    },
+    {
+      "type": "product",
+      "id": "product_3",
+      "label": "Product 3"
+    },
+    {
+      "type": "product",
+      "id": "product_4",
+      "label": "Product 4"
+    },
+    {
+      "type": "product",
+      "id": "product_5",
+      "label": "Product 5"
+    },
+    {
+      "type": "product",
+      "id": "product_6",
+      "label": "Product 6"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom product grid",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

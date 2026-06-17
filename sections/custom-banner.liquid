@@ -1,0 +1,315 @@
+{{ 'custom-banner.css' | asset_url | stylesheet_tag }}
+{{ 'custom-banner.js' | asset_url | script_tag }}
+
+{% liquid
+  assign overlay_opacity = section.settings.banner_overlay_opacity | times: 0.01
+  assign mobile_banner_description = section.settings.mobile_banner_description | default: section.settings.banner_description
+%}
+
+{%- comment -%}
+  Section-level CSS variables keep theme editor settings available to the stylesheet.
+  Mobile image and description fields intentionally fall back to their desktop values.
+{%- endcomment -%}
+<div
+  class="custom-banner"
+  style="
+    --custom-banner-header-background: {{ section.settings.header_background_color }};
+    --custom-banner-header-text: {{ section.settings.header_text_color }};
+    --custom-banner-text: {{ section.settings.banner_text_color }};
+    --custom-banner-overlay-color: {{ section.settings.banner_overlay_color }};
+    --custom-banner-overlay-opacity: {{ overlay_opacity }};
+    --custom-banner-strip-background: {{ section.settings.bottom_strip_background_color }};
+    --custom-banner-strip-text: {{ section.settings.bottom_strip_text_color }};
+    {% if section.settings.background_image != blank %}
+      --custom-banner-image: url('{{ section.settings.background_image | image_url: width: 2400 }}');
+    {% endif %}
+    {% if section.settings.mobile_background_image != blank %}
+      --custom-banner-mobile-image: url('{{ section.settings.mobile_background_image | image_url: width: 1200 }}');
+    {% endif %}
+  "
+>
+  {%- comment -%}Topbar: desktop shows brand, promo, and CTA; mobile uses a collapsible menu.{%- endcomment -%}
+  <div
+    class="custom-banner__topbar"
+    data-custom-banner-topbar
+  >
+    {%- comment -%}Mobile-only menu toggle. Both icons stay in the DOM so CSS can swap them on open.{%- endcomment -%}
+    <button
+      class="custom-banner__menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="custom-banner-menu-{{ section.id }}"
+      aria-label="Open header menu"
+      data-custom-banner-toggle
+    >
+      <svg
+        class="custom-banner__menu-icon custom-banner__menu-icon--open"
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="12"
+        viewBox="0 0 20 12"
+        fill="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M1 6H19" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M1 1H19" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M1 11H19" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+
+      <svg
+        class="custom-banner__menu-icon custom-banner__menu-icon--close"
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 15 15"
+        fill="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M1 13.9994L13.7279 1.27147" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M1 1L13.7279 13.7279" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    {% if section.settings.header_brand_name != blank %}
+      <div class="custom-banner__brand">{{ section.settings.header_brand_name }}</div>
+    {% endif %}
+
+    <div
+      id="custom-banner-menu-{{ section.id }}"
+      class="custom-banner__menu"
+      data-custom-banner-menu
+    >
+      {% if section.settings.header_promotional_text != blank %}
+        <div class="custom-banner__promo">{{ section.settings.header_promotional_text }}</div>
+      {% endif %}
+
+      {% if section.settings.cta_text != blank %}
+        <a
+          class="custom-banner__topbar-link"
+          href="{{ section.settings.cta_link | default: '#' }}"
+        >
+          <span>{{ section.settings.cta_text }}</span>
+          <svg
+            class="custom-banner__cta-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="12"
+            viewBox="0 0 26 12"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M0.75 4.77298L7.37629e-08 4.77298L-7.37629e-08 6.27298L0.75 6.27298L0.75 4.77298ZM25.2803 6.05331C25.5732 5.76042 25.5732 5.28554 25.2803 4.99265L20.5074 0.21968C20.2145 -0.073213 19.7396 -0.0732131 19.4467 0.21968C19.1538 0.512574 19.1538 0.987447 19.4467 1.28034L23.6893 5.52298L19.4467 9.76562C19.1538 10.0585 19.1538 10.5334 19.4467 10.8263C19.7396 11.1192 20.2145 11.1192 20.5074 10.8263L25.2803 6.05331ZM0.75 6.27298L24.75 6.27298L24.75 4.77298L0.75 4.77298L0.75 6.27298Z" fill="currentColor"/>
+          </svg>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {%- comment -%}Mobile-only overlay blocks page interaction and also closes the menu when clicked.{%- endcomment -%}
+  <button
+    class="custom-banner__screen-overlay"
+    type="button"
+    aria-label="Close header menu"
+    data-custom-banner-overlay
+  ></button>
+
+  {%- comment -%}Hero banner content uses separate desktop/mobile description markup for clean responsive control.{%- endcomment -%}
+  <div class="custom-banner__hero">
+    <div class="custom-banner__overlay"></div>
+
+    <div class="custom-banner__content">
+      <div class="custom-banner__copy">
+        {% if section.settings.banner_heading != blank %}
+          <h2 class="custom-banner__heading">{{ section.settings.banner_heading }}</h2>
+        {% endif %}
+
+        {% if section.settings.banner_description != blank %}
+          <div class="custom-banner__description custom-banner__description--desktop">
+            {{ section.settings.banner_description }}
+          </div>
+        {% endif %}
+
+        {% if mobile_banner_description != blank %}
+          <div class="custom-banner__description custom-banner__description--mobile">
+            {{ mobile_banner_description }}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if section.settings.banner_cta_text != blank %}
+        <a
+          class="custom-banner__button"
+          href="{{ section.settings.banner_cta_link | default: '#' }}"
+        >
+          <span>{{ section.settings.banner_cta_text }}</span>
+          <svg
+            class="custom-banner__cta-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="12"
+            viewBox="0 0 26 12"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M0.75 4.77298L7.37629e-08 4.77298L-7.37629e-08 6.27298L0.75 6.27298L0.75 4.77298ZM25.2803 6.05331C25.5732 5.76042 25.5732 5.28554 25.2803 4.99265L20.5074 0.21968C20.2145 -0.073213 19.7396 -0.0732131 19.4467 0.21968C19.1538 0.512574 19.1538 0.987447 19.4467 1.28034L23.6893 5.52298L19.4467 9.76562C19.1538 10.0585 19.1538 10.5334 19.4467 10.8263C19.7396 11.1192 20.2145 11.1192 20.5074 10.8263L25.2803 6.05331ZM0.75 6.27298L24.75 6.27298L24.75 4.77298L0.75 4.77298L0.75 6.27298Z" fill="currentColor"/>
+          </svg>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if section.settings.bottom_strip_promotional_text != blank %}
+    <div class="custom-banner__bottom-strip">
+      {{ section.settings.bottom_strip_promotional_text }}
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Custom banner",
+  "tag": "section",
+  "class": "custom-banner-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "color",
+      "id": "header_background_color",
+      "label": "Header background color",
+      "default": "#F5F5F5"
+    },
+    {
+      "type": "color",
+      "id": "header_text_color",
+      "label": "Header text color",
+      "default": "#000000"
+    },
+    {
+      "type": "text",
+      "id": "header_brand_name",
+      "label": "Header brand name",
+      "default": "TISSO VISON"
+    },
+    {
+      "type": "text",
+      "id": "header_promotional_text",
+      "label": "Header promotional text",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "CTA text",
+      "default": "CHOOSE GIFT"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "header",
+      "content": "Banner content"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_background_image",
+      "label": "Mobile background image"
+    },
+    {
+      "type": "color",
+      "id": "banner_text_color",
+      "label": "Banner text color",
+      "default": "#000000"
+    },
+    {
+      "type": "text",
+      "id": "banner_heading",
+      "label": "Banner heading",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "textarea",
+      "id": "banner_description",
+      "label": "Banner description",
+      "default": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season."
+    },
+    {
+      "type": "textarea",
+      "id": "mobile_banner_description",
+      "label": "Mobile banner description",
+      "info": "Falls back to the desktop banner description when blank."
+    },
+    {
+      "type": "text",
+      "id": "banner_cta_text",
+      "label": "Banner CTA text",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "banner_cta_link",
+      "label": "Banner CTA link"
+    },
+    {
+      "type": "color",
+      "id": "banner_overlay_color",
+      "label": "Banner overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "banner_overlay_opacity",
+      "label": "Banner overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Bottom strip"
+    },
+    {
+      "type": "text",
+      "id": "bottom_strip_promotional_text",
+      "label": "Bottom strip promotional text",
+      "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL"
+    },
+    {
+      "type": "color",
+      "id": "bottom_strip_text_color",
+      "label": "Bottom strip text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "bottom_strip_background_color",
+      "label": "Bottom strip background color",
+      "default": "#F5F5F5"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom banner",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
